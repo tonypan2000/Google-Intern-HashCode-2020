@@ -61,13 +61,30 @@ ifstream open_file(string filename) {
 	return fin;
 }
 
+void Process::process_data(Data& input, Output& result) {
+	/*
+	Idea A. cache server oriented (brute force)
+	1. find all combinations of which videos to put into which cache servers
+	2. calculate the time saved by each combinatiobn
+	3. find the most optimal one
+	*/
+
+	/*
+	Idea B. look at requests (naive)
+	1. iterate through each endpoint request
+	2. store each video that is connected to a cache server (without duplicates) until a cache is full
+	3. return result
+	*/
+}
+
 int main(int argc, char** argv) {
 	ios_base::sync_with_stdio(false);
 	ifstream fin = open_file("example.in");
 	Process solver;
 	Data input;
+	Output result;
 	solver.read_input(fin, input);
-	//solver.process_data();
-	//solver.print_results();
+	solver.process_data(input, result);
+	//solver.print_results(result);
 	return 0;
 }
