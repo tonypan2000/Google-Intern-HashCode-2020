@@ -1,15 +1,12 @@
 #pragma once
 #include "data.h"
 #include "output.h"
+#include <fstream>
 
 
 class Process {
 public:
-	void read_input();
-	void process_data();
-	void save_result();
-
-private:
-	Data input;
-	Output result;
+	void read_input(istream& fin, Data &input);
+	void process_data(Data &input, Output &result);
+	void print_results(Output &result);
 };
