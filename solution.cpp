@@ -75,6 +75,13 @@ void Process::process_data(Data& input, Output& result) {
 	2. store each video that is connected to a cache server (without duplicates) until a cache is full
 	3. return result
 	*/
+	for (auto r : input.get_requests()) {
+		int video_id = r.video_id;
+		int endpoint_id = r.endpoint_id;
+
+		// find the cache closest to endpoint (with capacity) to store video
+
+	}
 }
 
 int main(int argc, char** argv) {

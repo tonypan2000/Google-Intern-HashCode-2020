@@ -1,5 +1,5 @@
 #pragma once
-#include <unordered_map>
+#include <queue>
 #include <vector>
 
 using namespace std;
@@ -31,14 +31,20 @@ public:
 
 	struct Endpoint {
 		// latency from cache server to each endpoint
-		// maps latency in ms to cache server ID
-		unordered_map<int, int> latency_to_cache_ms;
+		// priority queue sorting latency in ms to cache server ID from low to high
+		// pair id latency
+		struct CompareCache {
+			bool operator() (pair<int, int> const &l1, pair<int, int> const &l2) const {
+				return l1.second > l2.second;
+			}
+		};
+		priority_queue<pair<int, int>, vector<pair<int, int>>, CompareCache> latency_to_cache_ms;
 		int latency_to_center_ms;
 		int num_connected_cache;
 		Endpoint(int latency_to_center_ms_in, int num_connected_cache_in)
 			: latency_to_center_ms(latency_to_center_ms_in), num_connected_cache(num_connected_cache_in) { }
 		void add_latency_entry(int id, int lat) {
-			latency_to_cache_ms.emplace(id, lat);
+			latency_to_cache_ms.emplace(make_pair(id, lat));
 		}
 	};
 
@@ -64,6 +70,10 @@ public:
 
 	void set_request_description(int video_id, int endpoint_id, int num_requests) {
 		requests.push_back(Request(video_id, endpoint_id, num_requests));
+	}
+
+	vector<Request> get_requests() {
+		return requests;
 	}
 	
 private:
