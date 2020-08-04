@@ -75,7 +75,12 @@ void naive_solution(Data& input, Output& result) {
 	for (int i = 0; i < num_cache; ++i) {
 		result.set_cache_info(input.get_cache_capacity());
 	}
-	for (auto r : input.get_requests()) {
+
+	priority_queue<Data::Request, vector<Data::Request>, Data::CompareRequest> pq = input.get_requests();
+	while (!pq.empty()) {
+		Data::Request r = pq.top();
+		pq.pop();
+
 		int video_id = r.video_id;
 		int endpoint_id = r.endpoint_id;
 		int video_size = input.get_video_size(video_id);

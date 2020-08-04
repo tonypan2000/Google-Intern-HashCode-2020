@@ -22,7 +22,6 @@ public:
 	void reserve_vectors() {
 		video_size_mb.reserve(num_videos);
 		endpoints.reserve(num_endpoints);
-		requests.reserve(num_request_descriptions);
 	}
 
 	void set_video_size(int size) {
@@ -82,6 +81,7 @@ public:
 		return endpoints[id];
 	}
 
+	
 	struct Request {
 		int video_id;
 		int endpoint_id;
@@ -90,15 +90,22 @@ public:
 			: video_id(video_id_in), endpoint_id(endpoint_id_in), num_requests(num_requests_in) { }
 	};
 
+	// rank each request information by the number of the same request made from the most to the least
+	struct CompareRequest {
+		bool operator() (Request const& r1, Request const& r2) const {
+			return r1.num_requests < r2.num_requests;
+		}
+	};
+
 	int get_num_request_descriptions() {
 		return num_request_descriptions;
 	}
 
 	void set_request_description(int video_id, int endpoint_id, int num_requests) {
-		requests.push_back(Request(video_id, endpoint_id, num_requests));
+		requests.emplace(Request(video_id, endpoint_id, num_requests));
 	}
 
-	vector<Request> get_requests() {
+	priority_queue<Request, vector<Request>, CompareRequest> get_requests() {
 		return requests;
 	}
 
@@ -122,5 +129,5 @@ private:
 
 	vector<Endpoint> endpoints;
 
-	vector<Request> requests;
+	priority_queue<Request, vector<Request>, CompareRequest> requests;
 };
