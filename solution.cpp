@@ -120,7 +120,7 @@ void naive_solution(Data& input, Output& result) {
 		}
 
 		// store the video there
-		result.store_video(cache_id, video_id, video_size);
+		result.store_video(cache_id, video_id, video_size, endpoint_id);
 	}
 
 	result.count_num_cache();
@@ -161,9 +161,12 @@ void pq_solution(Data& input, Output& result) {
 
 		// store the video there
 		int cache_id = c.cache_id;
+		int video_id = c.video_id;
 		int video_size = c.video_size;
-		if (result.enough_capacity(cache_id, video_size)) {
-			result.store_video(cache_id, c.video_id, video_size);
+		int endpoint_id = c.endpoint_id;
+		// check for capacity and duplicates of existing video with the same endpoint
+		if (result.enough_capacity(cache_id, video_size) && !result.duplicate_exist(video_id, endpoint_id)) {
+			result.store_video(cache_id, c.video_id, video_size, endpoint_id);
 		}
 	}
 	result.count_num_cache();
@@ -199,8 +202,8 @@ void Process::save_results(string filename, Output& result) {
 	for (int i = 0; i < videos_in_cache.size(); ++i) {
 		if (!videos_in_cache[i].cached_video_ids.empty()) {
 			out << i;
-			for (int id : videos_in_cache[i].cached_video_ids) {
-				out << ' ' << id;
+			for (pair<int, int> id : videos_in_cache[i].cached_video_ids) {
+				out << ' ' << id.first;
 			}
 			out << '\n';
 		}
