@@ -29,6 +29,10 @@ public:
 		video_size_mb.push_back(size);
 	}
 
+	int get_video_size(int id) {
+		return video_size_mb[id];
+	}
+
 	struct Endpoint {
 		// latency from cache server to each endpoint
 		// priority queue sorting latency in ms to cache server ID from low to high
@@ -38,13 +42,31 @@ public:
 				return l1.second > l2.second;
 			}
 		};
+
 		priority_queue<pair<int, int>, vector<pair<int, int>>, CompareCache> latency_to_cache_ms;
 		int latency_to_center_ms;
 		int num_connected_cache;
+
 		Endpoint(int latency_to_center_ms_in, int num_connected_cache_in)
 			: latency_to_center_ms(latency_to_center_ms_in), num_connected_cache(num_connected_cache_in) { }
+
 		void add_latency_entry(int id, int lat) {
 			latency_to_cache_ms.emplace(make_pair(id, lat));
+		}
+
+		int get_closest_cache_id() {
+			return latency_to_cache_ms.top().first;
+		}
+
+		int get_next_closest_cache_id() {
+			if (!latency_to_cache_ms.empty()) {
+				latency_to_cache_ms.pop();
+			}
+			if (!latency_to_cache_ms.empty()) {
+				return latency_to_cache_ms.top().first;
+			} else {
+				return -1;
+			}
 		}
 	};
 
@@ -54,6 +76,10 @@ public:
 
 	void set_endpoint_info(Endpoint &endpoint) {
 		endpoints.push_back(endpoint);
+	}
+
+	Endpoint get_endpoint(int id) {
+		return endpoints[id];
 	}
 
 	struct Request {
@@ -74,6 +100,14 @@ public:
 
 	vector<Request> get_requests() {
 		return requests;
+	}
+
+	int get_num_cache_servers() {
+		return num_cache;
+	}
+
+	int get_cache_capacity() {
+		return capacity_mb;
 	}
 	
 private:
