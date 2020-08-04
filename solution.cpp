@@ -202,8 +202,8 @@ void Process::save_results(string filename, Output& result) {
 	for (int i = 0; i < videos_in_cache.size(); ++i) {
 		if (!videos_in_cache[i].cached_video_ids.empty()) {
 			out << i;
-			for (pair<int, int> id : videos_in_cache[i].cached_video_ids) {
-				out << ' ' << id.first;
+			for (int id : videos_in_cache[i].cached_video_ids) {
+				out << ' ' << id;
 			}
 			out << '\n';
 		}

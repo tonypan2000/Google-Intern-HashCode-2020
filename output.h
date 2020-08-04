@@ -14,7 +14,8 @@ public:
 
 	struct Cache {
 		// set of video id and endpoint id to remove duplicates
-		unordered_set<pair<int, int>, pair_hash> cached_video_ids;
+		unordered_set<pair<int, int>, pair_hash> cached_video_endpoint_ids;
+		unordered_set<int> cached_video_ids;
 		int capacity;
 
 		Cache(int capacity_in)
@@ -43,7 +44,8 @@ public:
 	}
 
 	void store_video(int cache_id, int video_id, int video_size, int endpoint_id) {
-		stored_videos[cache_id].cached_video_ids.insert(make_pair(video_id, endpoint_id));
+		stored_videos[cache_id].cached_video_endpoint_ids.insert(make_pair(video_id, endpoint_id));
+		stored_videos[cache_id].cached_video_ids.insert(video_id);
 		stored_videos[cache_id].capacity -= video_size;
 	}
 
@@ -57,7 +59,7 @@ public:
 
 	bool duplicate_exist(int video_id, int endpoint_id) {
 		for (Cache c : stored_videos) {
-			if (c.cached_video_ids.find(make_pair(video_id, endpoint_id)) != c.cached_video_ids.end()) {
+			if (c.cached_video_endpoint_ids.find(make_pair(video_id, endpoint_id)) != c.cached_video_endpoint_ids.end()) {
 				return true;
 			}
 		}
