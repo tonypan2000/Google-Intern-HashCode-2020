@@ -143,12 +143,14 @@ void Process::save_results(string filename, Output& result) {
 
 int main(int argc, char** argv) {
 	ios_base::sync_with_stdio(false);
-	Process solver;
-	Data input;
-	Output result;
-	string input_files[5] = {"example", "learning_cooking_from_youtube", "me_working_from_home", "music_videos_of_2020", "vloggers_of_the_world"};
 	
+	string input_files[5] = {"example", "learning_cooking_from_youtube", "me_working_from_home", "music_videos_of_2020", "vloggers_of_the_world"};
+	// string input_files[1] = { "learning_cooking_from_youtube" };
+
 	for (string file : input_files) {
+		Process solver;
+		Data input;
+		Output result;
 		solver.read_input(file + ".in", input);
 		solver.process_data(input, result);
 		solver.save_results(file + ".out", result);
