@@ -36,6 +36,20 @@ void get_endpoints(istream& fin, Data& input) {
 	}
 }
 
+void get_unsorted_endpoints(istream& fin, Data& input) {
+	for (int i = 0; i < input.get_num_endpoints(); ++i) {
+		int latency_to_center_ms, num_connected_cache;
+		fin >> latency_to_center_ms >> num_connected_cache;
+		Data::Unsorted_Endpoint endpoint = Data::Unsorted_Endpoint(latency_to_center_ms, num_connected_cache);
+		for (int j = 0; j < num_connected_cache; ++j) {
+			int id, lat;
+			fin >> id >> lat;
+			endpoint.add_unsorted_latency_entry(id, lat);
+		}
+		input.set_unsorted_endpoint_info(endpoint);
+	}
+}
+
 void get_requests(istream& fin, Data& input) {
 	for (int i = 0; i < input.get_num_request_descriptions(); ++i) {
 		int video_id, endpoint_id, num_requests;
@@ -58,9 +72,18 @@ void Process::read_input(string filename, Data &input) {
 	ifstream fin = open_input_file(filename);
 	get_header(fin, input);
 	get_video_size(fin, input);
-	get_endpoints(fin, input);
+	get_unsorted_endpoints(fin, input);
+	// get_endpoints(fin, input);
 	get_requests(fin, input);
 	fin.close();
+}
+
+void init_result(Data& input, Output& result) {
+	int num_cache = input.get_num_cache_servers();
+	result.reserve_output_size(num_cache);
+	for (int i = 0; i < num_cache; ++i) {
+		result.set_cache_info(input.get_cache_capacity());
+	}
 }
 
 /*
@@ -70,21 +93,16 @@ void Process::read_input(string filename, Data &input) {
 	3. return result
 */
 void naive_solution(Data& input, Output& result) {
-	int num_cache = input.get_num_cache_servers();
-	result.reserve_output_size(num_cache);
-	for (int i = 0; i < num_cache; ++i) {
-		result.set_cache_info(input.get_cache_capacity());
-	}
+	init_result(input, result);
 
 	priority_queue<Data::Request, vector<Data::Request>, Data::CompareRequest> pq = input.get_requests();
 	while (!pq.empty()) {
 		Data::Request r = pq.top();
 		pq.pop();
-
 		int video_id = r.video_id;
-		int endpoint_id = r.endpoint_id;
 		int video_size = input.get_video_size(video_id);
 
+		int endpoint_id = r.endpoint_id;
 		// find the cache closest to endpoint (with capacity) to store video
 		Data::Endpoint ep = input.get_endpoint(endpoint_id);
 		if (!ep.num_connected_cache) {
@@ -108,6 +126,49 @@ void naive_solution(Data& input, Output& result) {
 	result.count_num_cache();
 }
 
+/*
+	Idea C (TODO): cache server oriented (brute force)
+	1. for each cache server, find all endpoints connected (sorted by num requests * latency diff)
+	2. iterate throuhgh requests, add videos in pq order
+*/
+void pq_solution(Data& input, Output& result) {
+	init_result(input, result);
+
+	priority_queue<Data::Request, vector<Data::Request>, Data::CompareRequest> pq = input.get_requests();
+	while (!pq.empty()) {
+		Data::Request r = pq.top();
+		pq.pop();
+		int video_id = r.video_id;
+		int video_size = input.get_video_size(video_id);
+
+		int endpoint_id = r.endpoint_id;
+		// find all caches with capacity to store video
+		Data::Unsorted_Endpoint ep = input.get_unsorted_endpoint(endpoint_id);
+		if (!ep.num_connected_cache) {
+			continue;
+		}
+		vector<pair<int, int>> latencies_to_cache_ms = ep.get_cache_latency();
+		for (pair<int, int> lat : latencies_to_cache_ms) {
+			input.set_combination(video_id, video_size, endpoint_id, r.num_requests, lat.first, lat.second, ep.latency_to_center_ms);
+		}
+	}
+
+	// go through all the combinations and add videos to cache
+	priority_queue<Data::Combination, vector<Data::Combination>, Data::CompareCombination> combinations = input.get_combinations();
+	while (!combinations.empty()) {
+		Data::Combination c = combinations.top();
+		combinations.pop();
+
+		// store the video there
+		int cache_id = c.cache_id;
+		int video_size = c.video_size;
+		if (result.enough_capacity(cache_id, video_size)) {
+			result.store_video(cache_id, c.video_id, video_size);
+		}
+	}
+	result.count_num_cache();
+}
+
 void Process::process_data(Data& input, Output& result) {
 	/*
 	Idea A (TODO): cache server oriented (brute force)
@@ -116,7 +177,9 @@ void Process::process_data(Data& input, Output& result) {
 	3. find the most optimal one
 	*/
 
-	naive_solution(input, result);
+	pq_solution(input, result);
+
+	// naive_solution(input, result);
 }
 
 ofstream open_output_file(string filename) {
