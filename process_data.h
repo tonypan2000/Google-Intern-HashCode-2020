@@ -6,7 +6,7 @@
 
 class Process {
 public:
-	void read_input(istream& fin, Data &input);
+	void read_input(string filename, Data &input);
 	void process_data(Data &input, Output &result);
-	void print_results(Output &result);
+	void save_results(string filename, Output &result);
 };

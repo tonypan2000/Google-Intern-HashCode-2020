@@ -39,6 +39,14 @@ public:
 		stored_videos[cache_id].capacity -= video_size;
 	}
 
+	int get_num_cache() {
+		return num_cache;
+	}
+
+	vector<Cache> get_videos_in_cache() {
+		return stored_videos;
+	}
+
 private:
 	int num_cache;
 	vector<Cache> stored_videos;
